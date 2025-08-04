@@ -1,4 +1,5 @@
 import { useAppSelector } from '@/app/hooks'
+import { Link } from 'react-router-dom'
 
 export const PostsList = () => {
   // select the state.posts value from the store into the component
@@ -8,7 +9,9 @@ export const PostsList = () => {
 
   const renderedPosts = posts.map(post => (
     <article className='post-excerpt' key={post.id}>
-      <h3>{post.title}</h3>
+      <h3>
+        <Link to={`/posts/${post.id}`}>{post.title}</Link>
+      </h3>
       <p className='post-content'>{post.content.substring(0, 100)}</p>
     </article>
   ))
