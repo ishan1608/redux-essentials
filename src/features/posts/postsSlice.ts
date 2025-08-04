@@ -25,11 +25,20 @@ const postsSlice = createSlice({
       // "Mutate" the existing state array, which is safe to do here because `createSlice` used Immer inside.
       state.push(action.payload)
     },
+    postUpdated(state: Post[], action: PayloadAction<Post>) {
+      const { id, title, content } = action.payload
+      const post = state.find(post => post.id === id)
+      if (!post) {
+        return
+      }
+      post.title = title
+      post.content = content
+    }
   },
 })
 
 // export the auto-generated action creator with the same name
-export const { postAdded } = postsSlice.actions
+export const { postAdded, postUpdated } = postsSlice.actions
 
 // export the generated reducer function
 export default postsSlice.reducer
