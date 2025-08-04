@@ -27,13 +27,7 @@ export const AddPostForm = () => {
 
     console.log('Values: ', { title, content })
 
-    // Create the post object and dispatch the `postAdded` action
-    const post: Post = {
-      id: nanoid(),
-      title,
-      content,
-    }
-    dispatch(postAdded(post))
+    dispatch(postAdded(title, content))
 
     e.currentTarget.reset()
   }
