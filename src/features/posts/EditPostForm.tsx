@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
-import { postUpdated } from '@/features/posts/postsSlice'
+import { postUpdated, selectPostById } from '@/features/posts/postsSlice'
 
 // TS types for the input fields
 // See: https://epicreact.dev/how-to-type-a-react-form-on-submit-handler/
@@ -17,11 +17,9 @@ export const EditPostForm = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
 
-  const { postId } = useParams();
+  const { postId } = useParams()
 
-  const post = useAppSelector(state => {
-    return state.posts.find(post => post.id === postId)
-  })
+  const post = useAppSelector((state) => selectPostById(state, postId!))
 
   if (!post) {
     return (
@@ -54,21 +52,10 @@ export const EditPostForm = () => {
     <section>
       <h2>Edit Post</h2>
       <form onSubmit={onSavePostClicked}>
-        <label htmlFor='postTitle'>Post Title:</label>
-        <input
-          type='text'
-          id='postTitle'
-          name='postTitle'
-          defaultValue={post.title}
-          required
-        />
-        <label htmlFor='postContent'>Content:</label>
-        <textarea
-          id='postContent'
-          name='postContent'
-          defaultValue={post.content}
-          required
-        />
+        <label htmlFor="postTitle">Post Title:</label>
+        <input type="text" id="postTitle" name="postTitle" defaultValue={post.title} required />
+        <label htmlFor="postContent">Content:</label>
+        <textarea id="postContent" name="postContent" defaultValue={post.content} required />
 
         <button>Save Post</button>
       </form>
