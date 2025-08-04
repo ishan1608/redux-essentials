@@ -4,13 +4,16 @@ import { createSlice, nanoid, PayloadAction } from '@reduxjs/toolkit'
 export interface Post {
   id: string
   title: string
-  content: string
+  content: string,
+  user: string,
 }
+
+type PostUpdate = Pick<Post, 'id' | 'title' | 'content'>
 
 // create an initial state value for the reducer, with that type
 const initialState: Post[] = [
-  { id: '1', title: 'First Post!', content: 'Hello World!' },
-  { id: '2', title: 'Second Post', content: 'Lorem ipsum dolor sit amet' },
+  { id: '1', title: 'First Post!', content: 'Hello World!', user: '0' },
+  { id: '2', title: 'Second Post', content: 'Lorem ipsum dolor sit amet', user: '2' },
 ]
 
 // create the slice and pass in the initial state
@@ -25,18 +28,19 @@ const postsSlice = createSlice({
         // "Mutate" the existing state array, which is safe to do here because `createSlice` used Immer inside.
         state.push(action.payload)
       },
-      prepare(title: string, content: string) {
+      prepare(title: string, content: string, userId: string) {
         return {
           payload: {
             id: nanoid(),
             title,
             content,
+            user: userId,
           },
         }
       },
     },
     postUpdated: {
-      reducer(state: Post[], action: PayloadAction<Post>) {
+      reducer(state: Post[], action: PayloadAction<PostUpdate>) {
         const { id, title, content } = action.payload
         const post = state.find((post) => post.id === id)
         if (!post) {
