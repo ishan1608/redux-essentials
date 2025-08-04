@@ -35,14 +35,25 @@ const postsSlice = createSlice({
         }
       },
     },
-    postUpdated(state: Post[], action: PayloadAction<Post>) {
-      const { id, title, content } = action.payload
-      const post = state.find((post) => post.id === id)
-      if (!post) {
-        return
-      }
-      post.title = title
-      post.content = content
+    postUpdated: {
+      reducer(state: Post[], action: PayloadAction<Post>) {
+        const { id, title, content } = action.payload
+        const post = state.find((post) => post.id === id)
+        if (!post) {
+          return
+        }
+        post.title = title
+        post.content = content
+      },
+      prepare(id: string, title: string, content: string) {
+        return {
+          payload: {
+            id,
+            title,
+            content,
+          },
+        }
+      },
     },
   },
 })

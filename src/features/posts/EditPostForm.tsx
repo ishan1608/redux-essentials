@@ -44,11 +44,7 @@ export const EditPostForm = () => {
     }
 
     // Dispatch the `postUpdated` action
-    dispatch(postUpdated({
-      id: post.id,
-      title,
-      content,
-    }))
+    dispatch(postUpdated(post.id, title, content))
 
     // Navigate to the post page
     navigate(`/posts/${postId}`)
