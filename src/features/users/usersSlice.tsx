@@ -18,6 +18,10 @@ const initialState: User[] = [
     id: '2',
     name: 'Madison Price',
   },
+  {
+    id: '3',
+    name: 'Andy Weir',
+  },
 ]
 
 const usersSlice = createSlice({
