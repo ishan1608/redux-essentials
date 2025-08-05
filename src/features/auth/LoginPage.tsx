@@ -1,7 +1,7 @@
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { selectAllUsers } from '@/features/users/usersSlice'
-import { useNavigate } from 'react-router-dom'
-import { userLoggedIn } from '@/features/auth/authSlice'
+import { Navigate, useNavigate } from 'react-router-dom'
+import { selectCurrentUserName, userLoggedIn } from '@/features/auth/authSlice'
 
 interface LoginPageFormFields extends HTMLFormControlsCollection {
   username: HTMLSelectElement
@@ -15,6 +15,11 @@ export const LoginPage = () => {
   const dispatch = useAppDispatch()
   const users = useAppSelector(selectAllUsers)
   const navigate = useNavigate()
+  const username = useAppSelector(selectCurrentUserName)
+
+  if (username) {
+    return <Navigate to="/posts" replace />
+  }
 
   const onClickLogin = (e: React.FormEvent<LoginPageFormElements>) => {
     e.preventDefault()
