@@ -1,5 +1,6 @@
 import { createSlice, nanoid, PayloadAction } from '@reduxjs/toolkit'
 import { sub } from 'date-fns'
+import { userLoggedOut } from '@/features/auth/authSlice'
 
 export interface Reactions {
   thumbsUp: number
@@ -28,7 +29,7 @@ const initialReactions: Reactions = {
   tada: 0,
   heart: 0,
   rocket: 0,
-  eyes: 0
+  eyes: 0,
 }
 
 // create an initial state value for the reducer, with that type
@@ -39,7 +40,7 @@ const initialState: Post[] = [
     content: 'Hello World!',
     user: '0',
     date: sub(new Date(), { minutes: 15 }).toISOString(),
-    reactions: {...initialReactions},
+    reactions: { ...initialReactions },
   },
   {
     id: '2',
@@ -47,7 +48,7 @@ const initialState: Post[] = [
     content: 'Lorem ipsum dolor sit amet',
     user: '2',
     date: sub(new Date(), { minutes: 10 }).toISOString(),
-    reactions: {...initialReactions},
+    reactions: { ...initialReactions },
   },
   {
     id: '3',
@@ -61,7 +62,7 @@ const initialState: Post[] = [
       'For readers, Project Hail Mary offers a blend of hard science, suspenseful discovery, and an emphasis on problem-solving amid extraordinary challenges',
     user: '3',
     date: sub(new Date(), { minutes: 5 }).toISOString(),
-    reactions: {...initialReactions},
+    reactions: { ...initialReactions },
   },
 ]
 
@@ -85,7 +86,7 @@ const postsSlice = createSlice({
             content,
             user: userId,
             date: new Date().toISOString(),
-            reactions: {...initialReactions}
+            reactions: { ...initialReactions },
           },
         }
       },
@@ -110,17 +111,27 @@ const postsSlice = createSlice({
         }
       },
     },
-    reactionAdded(state, action: PayloadAction<{
-      postId: string
-      reaction: ReactionName
-    }>) {
-      const { postId, reaction } = action.payload;
-      const existingPost = state.find(post => post.id === postId)
+    reactionAdded(
+      state,
+      action: PayloadAction<{
+        postId: string
+        reaction: ReactionName
+      }>,
+    ) {
+      const { postId, reaction } = action.payload
+      const existingPost = state.find((post) => post.id === postId)
       if (!existingPost) {
         return
       }
       existingPost.reactions[reaction]++
-    }
+    },
+  },
+  extraReducers: (builder) => {
+    // Pass the action creator to `builder.addCase()`
+    builder.addCase(userLoggedOut, (state: Post[]) => {
+      // clear out the list of posts whenever the user logs out
+      return []
+    })
   },
   selectors: {
     selectAllPosts(statePosts) {
