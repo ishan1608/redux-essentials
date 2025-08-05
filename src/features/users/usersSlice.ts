@@ -1,4 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
+import { selectCurrentUserName } from '@/features/auth/authSlice'
+import { RootState } from '@/app/store'
 
 interface User {
   id: string
@@ -36,3 +38,7 @@ const usersSlice = createSlice({
 
 export default usersSlice.reducer
 export const { selectAllUsers, selectUserById } = usersSlice.selectors
+export const selectCurrentUser = (state: RootState) => {
+  const currentUsername = selectCurrentUserName(state)
+  return selectUserById(state, currentUsername)
+}
