@@ -43,6 +43,7 @@ export const LoginPage = () => {
           <option value=""></option>
           {usersOptions}
         </select>
+        <button>Log In</button>
       </form>
     </section>
   )
