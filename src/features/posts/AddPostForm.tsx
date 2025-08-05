@@ -26,7 +26,7 @@ export const AddPostForm = () => {
     const title = elements.postTitle.value
     const content = elements.postContent.value
 
-    dispatch(postAdded(title, content, username))
+    dispatch(postAdded(title, content, username!))
 
     e.currentTarget.reset()
   }
