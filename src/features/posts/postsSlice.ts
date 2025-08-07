@@ -1,6 +1,10 @@
 import { createSlice, nanoid, PayloadAction } from '@reduxjs/toolkit'
-import { sub } from 'date-fns'
 import { userLoggedOut } from '@/features/auth/authSlice'
+
+import { client } from '@/api/client'
+import { createAppAsyncThunk } from '@/app/withTypes'
+
+const SLICE_NAME = 'posts'
 
 export interface Reactions {
   thumbsUp: number
@@ -32,51 +36,35 @@ const initialReactions: Reactions = {
   eyes: 0,
 }
 
+interface PostsState {
+  posts: Post[]
+  status: 'idle' | 'pending' | 'succeeded' | 'failed'
+  error: string | null
+}
+
+export const fetchPosts = createAppAsyncThunk(`${SLICE_NAME}/fetchPosts`, async () => {
+  const response = await client.get<Post[]>('/fakeApi/posts')
+  return response.data
+})
+
 // create an initial state value for the reducer, with that type
-const initialState: Post[] = [
-  {
-    id: '1',
-    title: 'First Post!',
-    content: 'Hello World!',
-    user: '0',
-    date: sub(new Date(), { minutes: 15 }).toISOString(),
-    reactions: { ...initialReactions },
-  },
-  {
-    id: '2',
-    title: 'Second Post',
-    content: 'Lorem ipsum dolor sit amet',
-    user: '2',
-    date: sub(new Date(), { minutes: 10 }).toISOString(),
-    reactions: { ...initialReactions },
-  },
-  {
-    id: '3',
-    title: 'Project Hail Mary',
-    content:
-      'Project Hail Mary refers both to a bestselling science fiction novel by Andy Weir (2021) and its upcoming major film adaptation, directed by Phil Lord and Christopher Miller and starring Ryan Gosling, scheduled for release on March 20, 2026.\n' +
-      "The story centers on Ryland Grace, a former molecular biologist and school teacher, who wakes up alone on a spaceship with amnesia and gradually remembers that he is humanity's last hope: sent to the Tau Ceti system to find a solution for a mysterious solar dimming event that threatens all life on Earth\n" +
-      '. Over the course of his mission, Grace discovers an alien organism called "Astrophage" that is responsible for the crisis, establishes first contact with an alien named Rocky, and must use his scientific knowledge and ingenuity to save both species.\n' +
-      'The novel received critical acclaim and was nominated for major science fiction awards\n' +
-      '. The film adaptation features Ryan Gosling as Ryland Grace, Sandra Hüller as Eva Stratt, and Milana Vayntrub, with Daniel Pemberton composing the score. Principal photography took place in the UK in 2024, and the film is set for release by Amazon MGM Studios.\n' +
-      'For readers, Project Hail Mary offers a blend of hard science, suspenseful discovery, and an emphasis on problem-solving amid extraordinary challenges',
-    user: '3',
-    date: sub(new Date(), { minutes: 5 }).toISOString(),
-    reactions: { ...initialReactions },
-  },
-]
+const initialState: PostsState = {
+  posts: [],
+  status: 'idle',
+  error: null,
+}
 
 // create the slice and pass in the initial state
 const postsSlice = createSlice({
-  name: 'posts',
+  name: SLICE_NAME,
   initialState,
   reducers: {
     // declare a "case reducer" named `postAdded`,
     // The type of `action.payload` will be a `Post` object.
     postAdded: {
-      reducer(state: Post[], action: PayloadAction<Post>) {
+      reducer(state: PostsState, action: PayloadAction<Post>) {
         // "Mutate" the existing state array, which is safe to do here because `createSlice` used Immer inside.
-        state.push(action.payload)
+        state.posts.push(action.payload)
       },
       prepare(title: string, content: string, userId: string) {
         return {
@@ -92,9 +80,9 @@ const postsSlice = createSlice({
       },
     },
     postUpdated: {
-      reducer(state: Post[], action: PayloadAction<PostUpdate>) {
+      reducer(state: PostsState, action: PayloadAction<PostUpdate>) {
         const { id, title, content } = action.payload
-        const post = state.find((post) => post.id === id)
+        const post = state.posts.find((post) => post.id === id)
         if (!post) {
           return
         }
@@ -112,14 +100,14 @@ const postsSlice = createSlice({
       },
     },
     reactionAdded(
-      state,
+      state: PostsState,
       action: PayloadAction<{
         postId: string
         reaction: ReactionName
       }>,
     ) {
       const { postId, reaction } = action.payload
-      const existingPost = state.find((post) => post.id === postId)
+      const existingPost = state.posts.find((post) => post.id === postId)
       if (!existingPost) {
         return
       }
@@ -128,17 +116,35 @@ const postsSlice = createSlice({
   },
   extraReducers: (builder) => {
     // Pass the action creator to `builder.addCase()`
-    builder.addCase(userLoggedOut, (state: Post[]) => {
-      // clear out the list of posts whenever the user logs out
-      return []
-    })
+    builder
+      .addCase(userLoggedOut, (state: PostsState) => {
+        // clear out the list of posts whenever the user logs out
+        return initialState
+      })
+      .addCase(fetchPosts.pending, (state, action) => {
+        state.status = 'pending'
+      })
+      .addCase(fetchPosts.fulfilled, (state, action) => {
+        state.status = 'succeeded'
+        state.posts = action.payload
+      })
+      .addCase(fetchPosts.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.error.message ?? 'Unknown Error'
+      })
   },
   selectors: {
     selectAllPosts(statePosts) {
-      return statePosts
+      return statePosts.posts
     },
     selectPostById(statePosts, postId) {
-      return statePosts.find((post) => post.id === postId)
+      return statePosts.posts.find((post) => post.id === postId)
+    },
+    selectPostsStatus(statePosts: PostsState) {
+      return statePosts.status
+    },
+    selectPostsError(statePosts: PostsState) {
+      return statePosts.error
     },
   },
 })
@@ -150,4 +156,4 @@ export const { postAdded, postUpdated, reactionAdded } = postsSlice.actions
 export default postsSlice.reducer
 
 // selector functions
-export const { selectAllPosts, selectPostById } = postsSlice.selectors
+export const { selectAllPosts, selectPostById, selectPostsStatus, selectPostsError } = postsSlice.selectors
