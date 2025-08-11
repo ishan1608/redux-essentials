@@ -1,6 +1,6 @@
 import React from 'react'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
-import { postAdded } from '@/features/posts/postsSlice'
+import { addNewPost } from '@/features/posts/postsSlice'
 import { selectCurrentUserName } from '@/features/auth/authSlice'
 
 // TS types for the input fields
@@ -26,7 +26,13 @@ export const AddPostForm = () => {
     const title = elements.postTitle.value
     const content = elements.postContent.value
 
-    dispatch(postAdded(title, content, username!))
+    dispatch(
+      addNewPost({
+        title,
+        content,
+        user: username!,
+      }),
+    )
 
     e.currentTarget.reset()
   }
