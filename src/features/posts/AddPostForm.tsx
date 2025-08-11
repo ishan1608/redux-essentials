@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { addNewPost } from '@/features/posts/postsSlice'
 import { selectCurrentUserName } from '@/features/auth/authSlice'
@@ -15,6 +15,8 @@ interface AddPostFormElements extends HTMLFormElement {
 }
 
 export const AddPostForm = () => {
+  const [addRequestStatus, setAddRequestStatus] = useState<'idle' | 'pending'>('idle')
+
   const dispatch = useAppDispatch()
   const username = useAppSelector(selectCurrentUserName)
 
@@ -26,15 +28,25 @@ export const AddPostForm = () => {
     const title = elements.postTitle.value
     const content = elements.postContent.value
 
-    dispatch(
-      addNewPost({
-        title,
-        content,
-        user: username!,
-      }),
-    )
+    try {
+      // mark the request as pending
+      setAddRequestStatus('pending')
 
-    e.currentTarget.reset()
+      // dispatch the async thunk to save the post and get the Promise from the thunk using the .unwrap() function
+      dispatch(
+        addNewPost({
+          title,
+          content,
+          user: username!,
+        }),
+      ).unwrap()
+
+      e.currentTarget.reset()
+    } catch (err) {
+      console.error('Failed to save the post: ', err)
+    } finally {
+      setAddRequestStatus('idle')
+    }
   }
 
   return (
