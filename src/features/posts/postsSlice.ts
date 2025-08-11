@@ -49,6 +49,7 @@ export const fetchPosts = createAppAsyncThunk(
     return response.data
   },
   {
+    // only fetch if the posts are not already being fetched
     condition(arg, thunkApi) {
       const postsStatus = selectPostsStatus(thunkApi.getState())
       return postsStatus === 'idle'

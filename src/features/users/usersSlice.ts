@@ -1,39 +1,41 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice, GetThunkAPI } from '@reduxjs/toolkit'
 import { selectCurrentUserName } from '@/features/auth/authSlice'
 import { RootState } from '@/app/store'
+import { createAppAsyncThunk } from '@/app/withTypes'
+import { client } from '@/api/client'
+import { MaybePromise } from 'msw/lib/core/typeUtils'
+
+const SLICE_NAME = 'users'
 
 interface User {
   id: string
   name: string
 }
 
-const initialState: User[] = [
-  {
-    id: '0',
-    name: 'Tianna Jenkins',
-  },
-  {
-    id: '1',
-    name: 'Kevin Grant',
-  },
-  {
-    id: '2',
-    name: 'Madison Price',
-  },
-  {
-    id: '3',
-    name: 'Andy Weir',
-  },
-]
+export const fetchUsers = createAppAsyncThunk(
+  `${SLICE_NAME}/fetchUsers`,
+  async () => {
+    const response = await client.get<User[]>('/fakeApi/users')
+    return response.data
+  }
+)
+
+const initialState: User[] = []
 
 const usersSlice = createSlice({
-  name: 'users',
+  name: SLICE_NAME,
   initialState,
   reducers: {},
   selectors: {
     selectAllUsers: (stateUsers) => stateUsers,
     selectUserById: (stateUsers, userId) => stateUsers.find((user) => user.id === userId),
   },
+  extraReducers: (builder) => {
+    builder.addCase(fetchUsers.fulfilled, (state, action) => {
+      // direcly returning the list of users, thus overriding the existing state
+      return action.payload
+    })
+  }
 })
 
 export default usersSlice.reducer
