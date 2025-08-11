@@ -1,9 +1,8 @@
-import { createSlice, GetThunkAPI } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit'
 import { selectCurrentUserName } from '@/features/auth/authSlice'
 import { RootState } from '@/app/store'
 import { createAppAsyncThunk } from '@/app/withTypes'
 import { client } from '@/api/client'
-import { MaybePromise } from 'msw/lib/core/typeUtils'
 
 const SLICE_NAME = 'users'
 
