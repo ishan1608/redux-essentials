@@ -25,6 +25,7 @@ export interface Post {
 }
 
 type PostUpdate = Pick<Post, 'id' | 'title' | 'content'>
+type NewPost = Pick<Post, 'title' | 'content' | 'user'>
 
 export type ReactionName = keyof Reactions
 
@@ -57,6 +58,17 @@ export const fetchPosts = createAppAsyncThunk(
   },
 )
 
+export const addNewPost = createAppAsyncThunk(
+  `${SLICE_NAME}/addNewPost`,
+  // The payload creator receives the partial `{title, content, user}` object
+  async (initialPost: NewPost) => {
+    // we send the initial data to the fake API server
+    const response = await client.post<Post>('/fakeApi/posts', initialPost)
+    // The response includes the complese post object, including unique ID
+    return response.data
+  },
+)
+
 // create an initial state value for the reducer, with that type
 const initialState: PostsState = {
   posts: [],
@@ -69,27 +81,7 @@ const postsSlice = createSlice({
   name: SLICE_NAME,
   initialState,
   reducers: {
-    // declare a "case reducer" named `postAdded`,
-    // The type of `action.payload` will be a `Post` object.
-    postAdded: {
-      reducer(state: PostsState, action: PayloadAction<Post>) {
-        // "Mutate" the existing state array, which is safe to do here because `createSlice` used Immer inside.
-        state.posts.push(action.payload)
-      },
-      prepare(title: string, content: string, userId: string) {
-        // create payload for post creation action based on the arguments
-        return {
-          payload: {
-            id: nanoid(),
-            title,
-            content,
-            user: userId,
-            date: new Date().toISOString(),
-            reactions: { ...initialReactions },
-          },
-        }
-      },
-    },
+    // The existing `postAdded` reducer and prepare callback are deleted in favor of `addNewPost` thunk and a reducer for the same
     postUpdated: {
       reducer(state: PostsState, action: PayloadAction<PostUpdate>) {
         const { id, title, content } = action.payload
@@ -145,6 +137,10 @@ const postsSlice = createSlice({
         state.status = 'failed'
         state.error = action.error.message ?? 'Unknown Error'
       })
+      .addCase(addNewPost.fulfilled, (state, action) => {
+        // we can directly add the new post object to our posts array
+        state.posts.push(action.payload)
+      })
   },
   selectors: {
     selectAllPosts(statePosts) {
@@ -163,7 +159,7 @@ const postsSlice = createSlice({
 })
 
 // export the auto-generated action creator with the same name
-export const { postAdded, postUpdated, reactionAdded } = postsSlice.actions
+export const { postUpdated, reactionAdded } = postsSlice.actions
 
 // export the generated reducer function
 export default postsSlice.reducer
