@@ -77,6 +77,7 @@ const postsSlice = createSlice({
         state.posts.push(action.payload)
       },
       prepare(title: string, content: string, userId: string) {
+        // create payload for post creation action based on the arguments
         return {
           payload: {
             id: nanoid(),
@@ -100,6 +101,7 @@ const postsSlice = createSlice({
         post.content = content
       },
       prepare(id: string, title: string, content: string) {
+        // create payload for updating the post action based on the arguments
         return {
           payload: {
             id,
