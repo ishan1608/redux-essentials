@@ -42,10 +42,19 @@ interface PostsState {
   error: string | null
 }
 
-export const fetchPosts = createAppAsyncThunk(`${SLICE_NAME}/fetchPosts`, async () => {
-  const response = await client.get<Post[]>('/fakeApi/posts')
-  return response.data
-})
+export const fetchPosts = createAppAsyncThunk(
+  `${SLICE_NAME}/fetchPosts`,
+  async () => {
+    const response = await client.get<Post[]>('/fakeApi/posts')
+    return response.data
+  },
+  {
+    condition(arg, thunkApi) {
+      const postsStatus = selectPostsStatus(thunkApi.getState())
+      return postsStatus === 'idle'
+    },
+  },
+)
 
 // create an initial state value for the reducer, with that type
 const initialState: PostsState = {
